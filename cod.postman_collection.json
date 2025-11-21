@@ -1,0 +1,301 @@
+{
+  "info": {
+    "name": "LMS Platform - Authentication API",
+    "description": "Complete authentication endpoints untuk LMS Platform",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Register - Student",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\",\n  \"password\": \"Student@123456\",\n  \"name\": \"Test Student\",\n  \"disability_type\": \"LOW_VISION\",\n  \"role\": \"STUDENT\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        },
+        "description": "Register sebagai student baru. Email verifikasi akan dikirim.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Registration successful. Please check your email to verify your account.\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"email\": \"student@test.com\",\n      \"name\": \"Test Student\",\n      \"disability_type\": \"LOW_VISION\",\n      \"role\": \"STUDENT\"\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGc...\",\n      \"refreshToken\": \"eyJhbGc...\"\n    }\n  }\n}\n```"
+      }
+    },
+    {
+      "name": "1. Register - Mentor",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"mentor@test.com\",\n  \"password\": \"Mentor@123456\",\n  \"name\": \"Test Mentor\",\n  \"disability_type\": \"MENTOR\",\n  \"role\": \"MENTOR\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "register"]
+        }
+      }
+    },
+    {
+      "name": "2. Login - Student/Mentor",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Simpan tokens ke environment variables",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data && jsonData.data.tokens) {",
+              "        pm.environment.set('accessToken', jsonData.data.tokens.accessToken);",
+              "        pm.environment.set('refreshToken', jsonData.data.tokens.refreshToken);",
+              "        console.log('Access token saved:', jsonData.data.tokens.accessToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\",\n  \"password\": \"Student@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "login"]
+        },
+        "description": "Login dengan email dan password. Tokens akan otomatis disimpan.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Login successful\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"email\": \"student@test.com\",\n      \"name\": \"Test Student\",\n      \"disability_type\": \"LOW_VISION\",\n      \"role\": \"STUDENT\"\n    },\n    \"tokens\": {\n      \"accessToken\": \"eyJhbGc...\",\n      \"refreshToken\": \"eyJhbGc...\"\n    }\n  }\n}\n```"
+      }
+    },
+    {
+      "name": "3. Get Current User (Me)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "me"]
+        },
+        "description": "Dapatkan data user yang sedang login.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"User data retrieved successfully\",\n  \"data\": {\n    \"id\": \"uuid\",\n    \"email\": \"student@test.com\",\n    \"name\": \"Test Student\",\n    \"disability_type\": \"LOW_VISION\",\n    \"role\": \"STUDENT\",\n    \"status\": \"ACTIVE\",\n    \"avatar_url\": null,\n    \"bio\": null,\n    \"email_verified\": false,\n    \"created_at\": \"2025-01-01T00:00:00.000Z\"\n  }\n}\n```"
+      }
+    },
+    {
+      "name": "4. Verify Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"paste_verification_token_from_email_here\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/verify-email",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "verify-email"]
+        },
+        "description": "Verifikasi email menggunakan token dari email.\n\n**Cara mendapatkan token:**\n1. Cek email setelah register\n2. Klik link verifikasi atau copy token dari URL\n3. Paste token di body request\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Email verified successfully. You can now access all features.\"\n}\n```"
+      }
+    },
+    {
+      "name": "5. Resend Verification Email",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/resend-verification",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "resend-verification"]
+        },
+        "description": "Kirim ulang email verifikasi jika belum diterima.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"If an account exists with this email and is not verified, a verification email has been sent.\"\n}\n```"
+      }
+    },
+    {
+      "name": "6. Forgot Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@test.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/forgot-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "forgot-password"]
+        },
+        "description": "Request reset password. Email dengan link reset akan dikirim.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"If an account exists with this email, you will receive password reset instructions.\"\n}\n```"
+      }
+    },
+    {
+      "name": "7. Reset Password",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"paste_reset_token_from_email_here\",\n  \"password\": \"NewPassword@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/reset-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "reset-password"]
+        },
+        "description": "Reset password menggunakan token dari email.\n\n**Requirements:**\n- Token valid dari email\n- Password minimal 8 karakter\n- Harus ada uppercase, lowercase, number, dan special character\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Password has been reset successfully. You can now login with your new password.\"\n}\n```"
+      }
+    },
+    {
+      "name": "8. Change Password (Authenticated)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"currentPassword\": \"Student@123456\",\n  \"newPassword\": \"NewPassword@123456\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/change-password",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "change-password"]
+        },
+        "description": "Ganti password saat sudah login (harus tau password lama).\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Password changed successfully\"\n}\n```"
+      }
+    },
+    {
+      "name": "9. Refresh Token",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Update tokens",
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    if (jsonData.data) {",
+              "        pm.environment.set('accessToken', jsonData.data.accessToken);",
+              "        pm.environment.set('refreshToken', jsonData.data.refreshToken);",
+              "    }",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/refresh",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "refresh"]
+        },
+        "description": "Refresh access token yang expired menggunakan refresh token.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Token refreshed successfully\",\n  \"data\": {\n    \"accessToken\": \"new_access_token\",\n    \"refreshToken\": \"new_refresh_token\"\n  }\n}\n```"
+      }
+    },
+    {
+      "name": "10. Logout",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/logout",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "auth", "logout"]
+        },
+        "description": "Logout user. Token di client harus dihapus.\n\n**Response Success:**\n```json\n{\n  \"success\": true,\n  \"message\": \"Logout successful\"\n}\n```"
+      }
+    }
+  ]
+}
